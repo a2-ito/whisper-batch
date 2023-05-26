@@ -6,7 +6,7 @@ def document_summarize(file):
 
     #ファイルの読み込み
     with open(file,encoding='utf-8') as f:
-        contents = f.readlines()      
+        contents = f.readlines()
 
     #全ての行を結合
     document = ''.join(contents)
@@ -20,6 +20,9 @@ def document_summarize(file):
     abstractable_doc = TopNRankAbstractor()
     # 文書の要約を実行
     result_dict = auto_abstractor.summarize(document, abstractable_doc)
+
+    for x in zip(result_dict['scoring_data'],result_dict["summarize_result"]):
+        print(x)
 
     return [x.replace('\n','') for x in result_dict["summarize_result"]]
 

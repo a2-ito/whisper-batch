@@ -9,6 +9,7 @@ import io
 import whisper
 import os
 import summarize_document
+import add_punctuation
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -78,9 +79,11 @@ def batch(file):
     path = "./" + outputText
     speech2text(inputAudio, outputText)
 
-    lines =  summarize_document.document_summarize(outputText)
+    # add punctuation
+    add_punctuation.main(outputText)
 
     # create summary text
+    lines =  summarize_document.document_summarize(outputText)
     with open(summaryText, mode='w') as f:
         f.writelines(lines)
 
