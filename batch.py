@@ -8,8 +8,10 @@ import io
 
 import whisper
 import os
+import sys
 import summarize_document
 import add_punctuation
+import option_parser
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -62,41 +64,41 @@ def fileMove(fileId, destFolderId, previousParents):
         supportsAllDrives=True
     ).execute()
 
+def uploadToGoogleDrive():
+    # upload outputText
+    upload(outputText, path, doneFolderId)
+    # upload summary
+    upload(summaryText, path, doneFolderId)
+
 def batch(file):
-    wipFolderId = os.getenv('WIP_FOLDER_ID')
-    doneFolderId = os.getenv('DONE_FOLDER_ID')
-    previousParents = SHARE_FOLDER_ID
+    isFile = os.path.isfile(file)
+    if not isFile:
+        print('not exists:', file)
+        sys.exit(1)
 
-    # move to wip
-    fileMove(file['id'], wipFolderId, previousParents)
-
-    # ファイルをダウンロード
-    download(file['name'], file['id'])
-
-    inputAudio = file['name']
+    print("batch started.")
+    inputAudio = file
     outputText = inputAudio + ".txt"
     summaryText = inputAudio + ".summary.txt"
     path = "./" + outputText
     speech2text(inputAudio, outputText)
 
     # add punctuation
-    add_punctuation.main(outputText)
+    add_punctuation.from_sentence(outputText)
 
     # create summary text
     lines =  summarize_document.document_summarize(outputText)
     with open(summaryText, mode='w') as f:
         f.writelines(lines)
 
-    # upload outputText
-    upload(outputText, path, doneFolderId)
-    # upload summary
-    upload(summaryText, path, doneFolderId)
+    print("batch terminated.")
 
-    # move to done
-    fileMove(file['id'], doneFolderId, wipFolderId)
+def batchOnGoogleDrive():
+    print("[Google Drive] batch started.")
+    wipFolderId = os.getenv('WIP_FOLDER_ID')
+    doneFolderId = os.getenv('DONE_FOLDER_ID')
+    previousParents = SHARE_FOLDER_ID
 
-def main():
-    print("batch started.")
     response = drive_service.files().list(
         supportsAllDrives=True,
         includeItemsFromAllDrives=True,
@@ -112,8 +114,24 @@ def main():
         path, ext = os.path.splitext(file['name'])
         if ext.lower() in targetExtList:
             print(path, ext)
-            batch(file)
-    print("batch terminated.")
+
+            # move to wip
+            fileMove(file['id'], wipFolderId, previousParents)
+            # ファイルをダウンロード
+            download(file['name'], file['id'])
+            batch(file['name'])
+            # move to done
+            fileMove(file['id'], doneFolderId, wipFolderId)
+            uploadToGoogleDrive()
+
+    print("[Google Drive] batch terminated.")
+
+def main():
+    args = option_parser.get_option('test.mp4')
+    if args.googleDrive:
+        batchOnGoogleDrive()
+    else:
+        batch(str(args.file))
 
 if __name__ == "__main__":
     main()

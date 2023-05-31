@@ -21,8 +21,8 @@ def document_summarize(file):
     # 文書の要約を実行
     result_dict = auto_abstractor.summarize(document, abstractable_doc)
 
-    for x in zip(result_dict['scoring_data'],result_dict["summarize_result"]):
-        print(x)
+    #for x in zip(result_dict['scoring_data'],result_dict["summarize_result"]):
+    #    print(x)
 
     return [x.replace('\n','') for x in result_dict["summarize_result"]]
 

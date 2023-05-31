@@ -28,7 +28,7 @@ def add_punctuation(corrected_sentence):
         punctuation = res["token_str"] if res["token_str"] != "?" else "。" # 今回は"？"は"。"として扱う
         corrected_sentence = insert_char_to_sentence(i, punctuation, corrected_sentence)
 
-    print(corrected_sentence)
+    #print(corrected_sentence)
     return corrected_sentence
     # Todo: corrected_sentence の句点で改行する
 
