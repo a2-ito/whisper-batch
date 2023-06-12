@@ -19,11 +19,11 @@ load_dotenv()
 SCOPES = ['https://www.googleapis.com/auth/drive']
 SHARE_FOLDER_ID = os.getenv('SHARE_FOLDER_ID')
 
-sa_creds = service_account.Credentials.from_service_account_file( 'credentials.json')
-scoped_creds = sa_creds.with_scopes(SCOPES)
+# sa_creds = service_account.Credentials.from_service_account_file( 'credentials.json')
+# scoped_creds = sa_creds.with_scopes(SCOPES)
 
-drive_service = build('drive', 'v3', credentials=scoped_creds)
-drive_service_v2 = build('drive', 'v2', credentials=scoped_creds)
+# drive_service = build('drive', 'v3', credentials=scoped_creds)
+# drive_service_v2 = build('drive', 'v2', credentials=scoped_creds)
 
 def upload(uploadFileName, uploadFilePath, folderId):
     mimeType = "text/plain"
