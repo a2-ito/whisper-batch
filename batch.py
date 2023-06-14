@@ -49,7 +49,8 @@ def download(fileName, fileId):
 
 def speech2text(inputAudio, outputText):
 
-    model = whisper.load_model(os.getenv('MODEL_TYPE'))
+    modelType = 'small' if not os.getenv('MODEL_TYPE') else os.getenv('MODEL_TYPE') 
+    model = whisper.load_model(modelType)
     result = model.transcribe(inputAudio, language="ja")
 
     with open(outputText, mode='w') as f:
