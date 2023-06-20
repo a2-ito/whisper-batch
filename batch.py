@@ -71,7 +71,17 @@ def uploadToGoogleDrive():
     # upload summary
     upload(summaryText, path, doneFolderId)
 
-def batch(file):
+def addPunctuation(file):
+    outputText = file + ".txt"
+    punctuatedText = file + ".punctuation.txt"
+
+    lines = add_punctuation.from_sentence(outputText)
+    with open(punctuatedText, mode='w') as f:
+        f.writelines(lines)
+
+    return punctuatedText
+
+def batch(file, skipRecognition):
     isFile = os.path.isfile(file)
     if not isFile:
         print('not exists:', file)
@@ -82,13 +92,15 @@ def batch(file):
     outputText = inputAudio + ".txt"
     summaryText = inputAudio + ".summary.txt"
     path = "./" + outputText
-    speech2text(inputAudio, outputText)
+
+    if not skipRecognition:
+        speech2text(inputAudio, outputText)
 
     # add punctuation
-    add_punctuation.from_sentence(outputText)
+    punctuatedText = addPunctuation(file)
 
     # create summary text
-    lines =  summarize_document.document_summarize(outputText)
+    lines =  summarize_document.document_summarize(punctuatedText)
     with open(summaryText, mode='w') as f:
         f.writelines(lines)
 
@@ -128,11 +140,12 @@ def batchOnGoogleDrive():
     print("[Google Drive] batch terminated.")
 
 def main():
-    args = option_parser.get_option('test.mp4')
+    defaultFile = 'test.mp4'
+    args = option_parser.get_option(defaultFile)
     if args.googleDrive:
         batchOnGoogleDrive()
     else:
-        batch(str(args.file))
+        batch(str(args.file), args.skipRecognition)
 
 if __name__ == "__main__":
     main()

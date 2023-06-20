@@ -8,4 +8,6 @@ def get_option(file):
     argparser.add_argument('-gd', '--googleDrive', type=bool,
                            default=False,
                            help='Only execute to use files on Google Drive.')
+    argparser.add_argument('-sr', '--skipRecognition', action='store_true',
+                           help='Skip speech recognition by whisper.')
     return argparser.parse_args()
