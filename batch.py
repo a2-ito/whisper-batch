@@ -75,7 +75,7 @@ def addPunctuation(file):
     outputText = file + ".txt"
     punctuatedText = file + ".punctuation.txt"
 
-    lines = add_punctuation.from_sentence(outputText)
+    lines = add_punctuation.from_file(outputText)
     with open(punctuatedText, mode='w') as f:
         f.writelines(lines)
 
