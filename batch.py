@@ -12,6 +12,8 @@ import sys
 import summarize_document
 import add_punctuation
 import option_parser
+import logging
+import time
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -24,6 +26,9 @@ SHARE_FOLDER_ID = os.getenv('SHARE_FOLDER_ID')
 
 # drive_service = build('drive', 'v3', credentials=scoped_creds)
 # drive_service_v2 = build('drive', 'v2', credentials=scoped_creds)
+
+def setLogger():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s:%(name)s - %(message)s")
 
 def upload(uploadFileName, uploadFilePath, folderId):
     mimeType = "text/plain"
@@ -75,19 +80,28 @@ def addPunctuation(file):
     outputText = file + ".txt"
     punctuatedText = file + ".punctuation.txt"
 
-    lines = add_punctuation.from_file(outputText)
+    res, lines = add_punctuation.from_file(outputText)
     with open(punctuatedText, mode='w') as f:
         f.writelines(lines)
+
+    if res == 1:
+        logging.error("error occured")
+        # outputText に上書きする
+        with open(outputText, mode='w') as f:
+            f.writelines(lines)
+        return None
 
     return punctuatedText
 
 def batch(file, skipRecognition):
+    startTime = time.time()
+
     isFile = os.path.isfile(file)
     if not isFile:
-        print('not exists:', file)
+        logging.error('not exists:', file)
         sys.exit(1)
 
-    print("batch started.")
+    logging.info("batch started.")
     inputAudio = file
     outputText = inputAudio + ".txt"
     summaryText = inputAudio + ".summary.txt"
@@ -98,16 +112,19 @@ def batch(file, skipRecognition):
 
     # add punctuation
     punctuatedText = addPunctuation(file)
+    if punctuatedText is None:
+        logging.info("puctuated error. " + str(time.time() - startTime) + "[s]")
+        exit(1)
 
     # create summary text
     lines =  summarize_document.document_summarize(punctuatedText)
     with open(summaryText, mode='w') as f:
         f.writelines(lines)
 
-    print("batch terminated.")
+    logging.info("batch terminated. " + str(time.time() - startTime) + "[s]")
 
 def batchOnGoogleDrive():
-    print("[Google Drive] batch started.")
+    logging.info("[Google Drive] batch started.")
     wipFolderId = os.getenv('WIP_FOLDER_ID')
     doneFolderId = os.getenv('DONE_FOLDER_ID')
     previousParents = SHARE_FOLDER_ID
@@ -123,7 +140,7 @@ def batchOnGoogleDrive():
     targetExtList = ['.mov', '.mp4']
 
     for file in response.get('files', []):
-        print(f"Found file: {file.get('name')} ({file.get('id')})")
+        logging.info(f"Found file: {file.get('name')} ({file.get('id')})")
         path, ext = os.path.splitext(file['name'])
         if ext.lower() in targetExtList:
             print(path, ext)
@@ -137,9 +154,11 @@ def batchOnGoogleDrive():
             fileMove(file['id'], doneFolderId, wipFolderId)
             uploadToGoogleDrive()
 
-    print("[Google Drive] batch terminated.")
+    logging.info("[Google Drive] batch terminated.")
 
 def main():
+    setLogger()
+
     defaultFile = 'test.mp4'
     args = option_parser.get_option(defaultFile)
     if args.googleDrive:

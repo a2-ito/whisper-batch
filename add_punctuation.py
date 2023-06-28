@@ -21,15 +21,23 @@ def add_punctuation(corrected_sentence):
 
         # 入力値に句点が含まれている場合、句点で split したセンテンスに mask_token が含まれていないので split できない
         pre_context, post_context = masked_text.split("。")[-1].split(nlp.tokenizer.mask_token)
-        res = nlp(f"{pre_context}{nlp.tokenizer.mask_token}{post_context[:chars_after_mask]}")[0] # scoreが一番高い文
+        try:
+            # scoreが一番高い文
+            res = nlp(f"{pre_context}{nlp.tokenizer.mask_token}{post_context[:chars_after_mask]}")[0]
+        except Exception as e:
+            print(e)
+            print(res)
+            return 1, corrected_sentence
+
         if res["token_str"] not in punctuations: continue
         if res["score"] < thresh: continue
 
-        punctuation = res["token_str"] if res["token_str"] != "?" else "。" # 今回は"？"は"。"として扱う
+        # "？"は"。"として扱う
+        punctuation = res["token_str"] if res["token_str"] != "?" else "。"
         corrected_sentence = insert_char_to_sentence(i, punctuation, corrected_sentence)
 
     #print(corrected_sentence)
-    return corrected_sentence
+    return 0, corrected_sentence
     # Todo: corrected_sentence の句点で改行する
 
 def from_sentence(sentence):
@@ -37,9 +45,12 @@ def from_sentence(sentence):
     lines = ""
 
     for splitted_sentence in sentence.split("。"):
-        lines += add_punctuation(splitted_sentence)
+        res, s = add_punctuation(splitted_sentence)
+        lines += s
+        if res == 1:
+            return 1, lines
 
-    return lines
+    return 0, lines
 
 def from_file(file):
     with open(file, encoding='utf-8') as f:
