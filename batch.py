@@ -14,6 +14,7 @@ import add_punctuation
 import option_parser
 import logging
 import time
+import add_newline
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -105,6 +106,7 @@ def batch(file, skipRecognition):
     inputAudio = file
     outputText = inputAudio + ".txt"
     summaryText = inputAudio + ".summary.txt"
+    newlineText = inputAudio + ".newline.txt"
     path = "./" + outputText
 
     if not skipRecognition:
@@ -119,6 +121,11 @@ def batch(file, skipRecognition):
     # create summary text
     lines =  summarize_document.document_summarize(punctuatedText)
     with open(summaryText, mode='w') as f:
+        f.writelines(lines)
+
+    # newline
+    lines = add_newline.from_file(punctuatedText)
+    with open(newlineText, mode='w') as f:
         f.writelines(lines)
 
     logging.info("batch terminated. " + str(time.time() - startTime) + "[s]")
