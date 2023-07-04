@@ -5,6 +5,10 @@ __pycache__/
 
 *.mp4
 *.mov
+*.txt
+*.bk
 
 credentials.json
 .env
+
+backup/
